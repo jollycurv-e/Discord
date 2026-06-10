@@ -52,6 +52,7 @@ export default {
             const pvpDeathsText = formatTop(data.pvp_deaths, 'pvp_death_count');
             const advText = formatTop(data.advancements, 'advancement_count');
             const playtimeText = formatTop(data.playtime, 'total_playtime', 'd');
+            const tradesText = formatTop(data.trades, 'trade_count');
 
             // Create embed
             const embed = new MessageEmbed()
@@ -72,6 +73,9 @@ ${advText}
 
 ⏱️ Playtime
 ${playtimeText}
+
+🤝 Trades
+${tradesText}
 \`\`\``)
                 .setFooter({ text: "Data provided by ForestBot | Join support server: https://discord.com/invite/2P8enrdY6t" })
                 .setTimestamp();

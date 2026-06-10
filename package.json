@@ -21,6 +21,7 @@
     "forestbot-api-wrapper-v2": "^1.5.9",
     "javascript-time-ago": "^2.3.13",
     "node-fetch": "^3.2.3",
+    "typescript": "^6.0.3",
     "ws": "^8.13.0"
   }
 }
