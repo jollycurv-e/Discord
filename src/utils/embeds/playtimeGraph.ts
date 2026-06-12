@@ -11,9 +11,12 @@ export async function buildPlaytimeEmbed(
     if (!uuid) return null;
 
     // Fetch playtime data
-    const graphData = await fetch(
+    const res = await fetch(
         `http://localhost:8001/player/playtime?uuid=${uuid}&date=${Date.now()}&server=${thisGuild.mc_server}&duration=${duration}`
-    ).then(res => res.json());
+    );
+    if (!res.ok) return null;
+    const graphData = await res.json();
+    if (!Array.isArray(graphData)) return null;
 
     // Prepare chart data
     const labels: string[] = [];
