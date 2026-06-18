@@ -14,8 +14,10 @@ export default async function buttonHandler(interaction: Interaction, client: Fo
         });
     }
 
-    if (interaction["customId"] === "refresh" || interaction["customId"] === thisGuild.mc_server) {
+    const customId = interaction["customId"];
+    if (customId === "refresh" || customId === "refresh_lossless" || customId === thisGuild.mc_server) {
+        const lossless = customId === "refresh_lossless";
         await interaction.deferUpdate();
-        return await interaction.editReply(await makeTablistEmbed(thisGuild.mc_server.toLowerCase(), "refresh"));
+        return await interaction.editReply(await makeTablistEmbed(thisGuild.mc_server.toLowerCase(), customId, lossless));
     }
 };

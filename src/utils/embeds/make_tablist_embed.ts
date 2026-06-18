@@ -2,8 +2,10 @@ import { cnf }        from "../../index.js";
 import makeid                from "../makeId.js";
 import { MessageAttachment } from "discord.js";
 
-const makeTablistEmbed = async (mc_server: string, custom_id: string) => {
-    let tablisturl = `${cnf.apiUrl}/tab/${mc_server}?${makeid(14)}`;
+const makeTablistEmbed = async (mc_server: string, custom_id: string, lossless = false) => {
+    const losslessParam = lossless ? '&lossless=true' : '';
+    const tablisturl = `${cnf.apiUrl}/tab/${mc_server}?${makeid(14)}${losslessParam}`;
+    const filename = lossless ? 'tablist.png' : 'tablist.jpg';
 
     const response = await fetch(tablisturl);
     if (!response.ok) {
@@ -15,10 +17,10 @@ const makeTablistEmbed = async (mc_server: string, custom_id: string) => {
 
     const imageDataArrayBuffer = await response.arrayBuffer();
     const imageDataBuffer = Buffer.from(imageDataArrayBuffer);
-    const att = new MessageAttachment(imageDataBuffer, "tablist.png")
+    const att = new MessageAttachment(imageDataBuffer, filename)
 
     return {
-        content: `${mc_server}` ,
+        content: `${mc_server}`,
         files: [att],
         components: [{
             type: 1,
@@ -32,7 +34,6 @@ const makeTablistEmbed = async (mc_server: string, custom_id: string) => {
             ]
         }]
     }
-
 }
 
 export default makeTablistEmbed
