@@ -3,7 +3,6 @@ import type ForestBot from "../structure/discord/Client"
 import makeTablistEmbed from "../utils/embeds/make_tablist_embed.js";
 
 const prefix = "!";
-const userCooldowns = new Map();
 
 export default {
     name: "messageCreate",
@@ -25,19 +24,7 @@ export default {
         if (client.liveChatChannelCache.has(channel.id) && content && content.length < 250) {
             const username = `${author.username}#${author.discriminator}`;
             const { channel: chan, channelArgs } = client.liveChatChannelCache.get(channel.id);
-
-            // Check user cooldown for this channel
-            const userLastMessageTime = userCooldowns.get(username)?.get(channelArgs.mc_server) || 0;
             const currentTime = Date.now();
-            if (currentTime - userLastMessageTime < 10000) {
-                return;
-            }
-
-            // Update user cooldown for this channel
-            if (!userCooldowns.has(username)) {
-                userCooldowns.set(username, new Map());
-            }
-            userCooldowns.get(username)?.set(channelArgs.mc_server, currentTime);
 
             client.API.websocket.sendDiscordChatMessage({
                 message: content,
