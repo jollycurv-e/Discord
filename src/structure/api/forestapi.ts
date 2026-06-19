@@ -26,7 +26,11 @@ export default class apiHandler extends ForestBotAPI {
         });
 
         this.on("websocket_close", () => {
-            console.log("Websocket closed.");
+            console.log("Websocket closed. Reconnecting in 5s...");
+            setTimeout(() => {
+                console.log("Reconnecting to websocket...");
+                this.websocket?.authenticate();
+            }, 5000);
         });
 
         this.on("websocket_error", (data: any) => {
