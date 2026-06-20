@@ -64,6 +64,14 @@ export default class apiHandler extends ForestBotAPI {
         this.on("minecraft_advancement", (data: MinecraftAdvancementMessage) => {
             client?.minecraftChatEmbed(data.advancement, "Yellow", data.mc_server);
         });
+        this.on("unknown_message", (data: any) => {
+            if (data?.action === "content_flagged") {
+                const d = data.data as { username: string, mc_server: string, command: string, content: string };
+                client?.sendMessageToSudoChannel(
+                    `🚨 **Flagged content** | \`!${d.command}\` by **${d.username}** on \`${d.mc_server}\`\n\`\`\`${d.content}\`\`\``
+                );
+            }
+        });
         // here we listen for the events for minecraft messages to log to game chat.
 
     }

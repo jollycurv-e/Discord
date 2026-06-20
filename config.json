@@ -3,7 +3,7 @@
     "load_guild_commands": true,
     "apiUrl": "http://localhost:8001",
     "websocket_url": "ws://localhost:8001",
-    "rootGuild": "814728510307434497",
-    "whitelistedids": ["703044116019281963"],
-    "sudoChannel": "1305668921545986128"
+    "rootGuild": "1512605583843397732",
+    "whitelistedids": ["1310388036051144767"],
+    "sudoChannel": "1517635176438567124"
 }
