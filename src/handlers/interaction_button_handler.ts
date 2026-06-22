@@ -4,6 +4,18 @@ import type ForestBot from "../structure/discord/Client";
 
 export default async function buttonHandler(interaction: Interaction, client: ForestBot) {
     if (!interaction.isButton()) return;
+
+    const customId = interaction.customId;
+    if (customId === 'flagged_dismiss' || customId === 'flagged_action_taken') {
+        await interaction.deferUpdate();
+        const label = customId === 'flagged_dismiss' ? '✅ Dismissed' : '⚠️ Action Taken';
+        await interaction.editReply({
+            content: `${interaction.message.content}\n\n${label} by **${interaction.user.tag}**`,
+            components: [],
+        });
+        return;
+    }
+
     const thisGuild = client.cachedGuilds.get(interaction.guild.id);
 
     if (!thisGuild) {
@@ -14,7 +26,6 @@ export default async function buttonHandler(interaction: Interaction, client: Fo
         });
     }
 
-    const customId = interaction["customId"];
     if (customId === "refresh" || customId === "refresh_lossless" || customId === thisGuild.mc_server) {
         const lossless = customId === "refresh_lossless";
         await interaction.deferUpdate();

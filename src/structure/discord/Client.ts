@@ -1,6 +1,6 @@
 import { REST } from "@discordjs/rest";
 import { Routes } from "discord-api-types/v9";
-import { Collection, Client, TextChannel, ColorResolvable } from "discord.js";
+import { Collection, Client, TextChannel, ColorResolvable, MessageActionRow, MessageButton } from "discord.js";
 import { lstatSync } from "fs";
 import { readdir } from "fs/promises";
 import { client, cnf, color } from '../../index.js';
@@ -90,10 +90,37 @@ export default class ForestBot extends Client {
         }
     };
 
-    public async sendMessageToSudoChannel(text: string) { 
-        const sudoChannel = this.channels.cache.get(cnf.sudoChannel) as TextChannel;
-        if (!sudoChannel) return;
+    private getSudoChannel(): TextChannel | null {
+        return (this.channels.cache.get(cnf.sudoChannel) as TextChannel) ?? null;
+    }
+
+    public async sendMessageToSudoChannel(text: string) {
+        const sudoChannel = this.getSudoChannel();
+        if (!sudoChannel) {
+            console.error(`[sudo] sudoChannel ${cnf.sudoChannel} not in cache`);
+            return;
+        }
         await sudoChannel.send(text);
+    }
+
+    public async sendFlaggedContentAlert(data: { username: string, mc_server: string, command: string, content: string }) {
+        const sudoChannel = this.getSudoChannel();
+        if (!sudoChannel) {
+            console.error(`[flagged] sudoChannel ${cnf.sudoChannel} not in cache`);
+            return;
+        }
+        try {
+            const row = new MessageActionRow().addComponents(
+                new MessageButton().setCustomId('flagged_dismiss').setLabel('Dismiss').setStyle('SECONDARY'),
+                new MessageButton().setCustomId('flagged_action_taken').setLabel('Action Taken').setStyle('DANGER'),
+            );
+            await sudoChannel.send({
+                content: `🚨 **Flagged content** | \`!${data.command}\` by **${data.username}** on \`${data.mc_server}\`\n\`\`\`${data.content}\`\`\``,
+                components: [row],
+            });
+        } catch (err) {
+            console.error(`[flagged] failed to send alert:`, err);
+        }
     }
 
 
