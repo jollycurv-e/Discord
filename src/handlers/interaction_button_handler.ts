@@ -1,4 +1,5 @@
 import makeTablistEmbed from "../utils/embeds/make_tablist_embed.js";
+import makeMosaicEmbed from "../utils/embeds/make_mosaic_embed.js";
 import type { Interaction } from "discord.js";
 import type ForestBot from "../structure/discord/Client";
 
@@ -30,5 +31,11 @@ export default async function buttonHandler(interaction: Interaction, client: Fo
         const lossless = customId === "refresh_lossless";
         await interaction.deferUpdate();
         return await interaction.editReply(await makeTablistEmbed(thisGuild.mc_server.toLowerCase(), customId, lossless));
+    }
+
+    if (customId === "mosaic_refresh" || customId === "mosaic_refresh_lossless") {
+        const lossless = customId === "mosaic_refresh_lossless";
+        await interaction.deferUpdate();
+        return await interaction.editReply(await makeMosaicEmbed(thisGuild.mc_server.toLowerCase(), customId, lossless));
     }
 };
