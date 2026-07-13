@@ -69,6 +69,9 @@ export default class apiHandler extends ForestBotAPI {
                 const d = data.data as { username: string, mc_server: string, command: string, content: string };
                 client?.sendFlaggedContentAlert(d);
             }
+            if (data?.action === "bridge_commands_updated") {
+                client?.syncBridgeCommandsCache();
+            }
         });
         // here we listen for the events for minecraft messages to log to game chat.
 
@@ -215,6 +218,31 @@ export default class apiHandler extends ForestBotAPI {
 
         } catch (err) {
             console.error("error getting all live chats.");
+            return null;
+        }
+    }
+
+    /**
+     * Get all bridge-safe commands (commands that can be safely run via chat bridge).
+     * @returns Promise<Array<{ name: string, bridge_ok: boolean }> | null>
+     */
+    public async getBridgeCommands(): Promise<Array<{ name: string, bridge_ok: boolean }> | null> {
+        try {
+            const response = await fetch(`${this.apiurl}/craftbot/bridge-commands`, {
+                headers: {
+                    "Content-Type": "application/json",
+                    "x-api-key": this.apiKey
+                }
+            });
+            if (!response || !response.ok) throw new Error("not ok response.");
+
+            const result = await response.json() as ForestBotApiResponse;
+            if (!result.success) throw new Error("no bridge commands success");
+
+            return result.data as Array<{ name: string, bridge_ok: boolean }>;
+
+        } catch (err) {
+            console.error("error getting bridge commands.");
             return null;
         }
     }

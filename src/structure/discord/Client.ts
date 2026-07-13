@@ -26,18 +26,23 @@ export default class ForestBot extends Client {
 
     public ErrorHandler: ErrorHandler;
     public commandCollection: Collection<string,{
-        default: { 
-            permissions:string[]|string; 
-            run: any; 
-            channel_strict: boolean; 
-            requires_setup: boolean; 
-            Iswhitelisted: boolean; 
+        default: {
+            permissions:string[]|string;
+            run: any;
+            channel_strict: boolean;
+            requires_setup: boolean;
+            Iswhitelisted: boolean;
         };
     }>;
     public apiUrl: string = cnf.apiUrl;
     public commands: any[];
     public cachedGuilds: Map<string, Guild> = new Map();
     public liveChatChannelCache: Map<string, { channelArgs: DiscordForestBotLiveChat, channel: TextChannel }> = new Map();
+    public bridgeUnsafeCommandsCache: Set<string> = new Set();
+    // False until the first successful sync with craftbot's real list. Fail-safe: while
+    // false, treat every command as unsafe (deny-by-default) instead of allowing everything
+    // through on a startup race / stale Hub map.
+    public bridgeCommandsSynced: boolean = false;
 
     constructor(options: Options["discord"], wsOpts: ForestBotAPIOptions) {
         super(options);
@@ -50,6 +55,7 @@ export default class ForestBot extends Client {
             console.log(`Logged in as ${this.user.tag}!`);
             await this.syncGuildCache();
             await this.syncLiveChatChannelsCache();
+            await this.syncBridgeCommandsCache();
             await this.handleEvents()
             await this.handleCommands()
             
@@ -141,6 +147,23 @@ export default class ForestBot extends Client {
             }
         }
 
+    }
+
+    public async syncBridgeCommandsCache() {
+        const commands = await this.API.getBridgeCommands();
+        this.bridgeUnsafeCommandsCache.clear();
+        // Empty array means craftbot's map on Hub is genuinely empty (hasn't pushed yet,
+        // e.g. still connecting) -- a real sync always has 100+ entries (every command alias
+        // gets pushed, safe or not). Don't treat that as "synced" or bridge safety collapses
+        // to allow-everything until the next lucky sync.
+        if (!commands || commands.length === 0) return;
+
+        this.bridgeCommandsSynced = true;
+        for (const command of commands) {
+            if (!command.bridge_ok) {
+                this.bridgeUnsafeCommandsCache.add(command.name.toLowerCase());
+            }
+        }
     }
 
     public async syncGuildCache() {

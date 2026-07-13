@@ -22,6 +22,21 @@ export default {
 
 
         if (client.liveChatChannelCache.has(channel.id) && content && content.length < 250) {
+            // Check if message is a command that's unsafe for chat bridge
+            if (content.startsWith(prefix)) {
+                const commandMatch = content.slice(prefix.length).split(/\s+/)[0];
+                // Fail-safe: haven't gotten a real list from craftbot yet (startup race, Hub
+                // restart, etc.) -- deny all commands rather than allow everything through.
+                const isUnsafe = !client.bridgeCommandsSynced
+                    || (commandMatch && client.bridgeUnsafeCommandsCache.has(commandMatch.toLowerCase()));
+                if (commandMatch && isUnsafe) {
+                    // Stays in the bridge channel (same continuity as normal bridge chat) but
+                    // never crosses over -- return before sendDiscordChatMessage below.
+                    await channel.send(`<@${author.id}> that command can't be run from the chat bridge.`).catch(() => {});
+                    return;
+                }
+            }
+
             const username = `${author.username}#${author.discriminator}`;
             const { channel: chan, channelArgs } = client.liveChatChannelCache.get(channel.id);
             const currentTime = Date.now();
