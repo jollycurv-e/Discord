@@ -5,5 +5,6 @@
     "websocket_url": "ws://localhost:8001",
     "rootGuild": "your_guild_id",
     "whitelistedids": ["your_discord_user_id"],
-    "sudoChannel": "your_sudo_channel_id"
+    "sudoChannel": "your_sudo_channel_id",
+    "resolvable_guild_ids": ["a_guild_id_to_search_for_username_resolution", "another_guild_id_here"]
 }

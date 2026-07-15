@@ -72,6 +72,9 @@ export default class apiHandler extends ForestBotAPI {
             if (data?.action === "bridge_commands_updated") {
                 client?.syncBridgeCommandsCache();
             }
+            if (data?.action === "resolve_discord_username") {
+                void this.resolveDiscordUsername(data.data as { request_id: string, username: string });
+            }
         });
         // here we listen for the events for minecraft messages to log to game chat.
 
@@ -247,5 +250,42 @@ export default class apiHandler extends ForestBotAPI {
         }
     }
 
+    /**
+     * Resolving a "server username" (nickname or username) seen in a chat-bridged MC
+     * message to a real Discord snowflake ID, so craftbot can check the linked account
+     * against its blacklist. Searches each guild in config.json's resolvable_guild_ids,
+     * in order, stopping at the first exact (case-insensitive) match -- guild.members.fetch's
+     * query is a PREFIX match, so trusting the first result could resolve to the wrong
+     * member on any name collision.
+     * @param request_id echoed back unchanged so craftbot can match the reply to the right pending request
+     * @param username the "server username" string as it appeared in the bridged chat message
+     */
+    private async resolveDiscordUsername({ request_id, username }: { request_id: string, username: string }): Promise<void> {
+        let snowflake: string | null = null;
+        const guildIds: string[] = cnf.resolvable_guild_ids ?? [];
+
+        try {
+            for (const guildId of guildIds) {
+                const guild = client?.guilds.cache.get(guildId);
+                if (!guild) continue;
+
+                const matches = await guild.members.fetch({ query: username, limit: 5 });
+                const exact = matches.find(m =>
+                    m.nickname?.toLowerCase() === username.toLowerCase() ||
+                    m.user.username.toLowerCase() === username.toLowerCase()
+                );
+                if (exact) {
+                    snowflake = exact.id;
+                    break;
+                }
+            }
+        } catch (err) {
+            console.error(err, "resolveDiscordUsername error");
+        }
+
+        // Cast needed: forestbot-api-wrapper-v2's own typings lock sendMessage's action/data
+        // to closed unions that predate this custom action -- can't extend an external package.
+        this.websocket?.sendMessage({ action: "resolve_discord_username_result", data: { request_id, snowflake } } as any);
+    }
 
 }
