@@ -263,13 +263,18 @@ export default class apiHandler extends ForestBotAPI {
     private async resolveDiscordUsername({ request_id, username }: { request_id: string, username: string }): Promise<void> {
         let snowflake: string | null = null;
         const guildIds: string[] = cnf.resolvable_guild_ids ?? [];
+        console.log(`[resolveDiscordUsername] request_id=${request_id} username="${username}" configuredGuildIds=${JSON.stringify(guildIds)} clientGuildCache=${[...(client?.guilds.cache.keys() ?? [])].join(",")}`);
 
         try {
             for (const guildId of guildIds) {
                 const guild = client?.guilds.cache.get(guildId);
-                if (!guild) continue;
+                if (!guild) {
+                    console.log(`[resolveDiscordUsername] guild ${guildId} not in client's guild cache -- bot not a member, or wrong id`);
+                    continue;
+                }
 
                 const matches = await guild.members.fetch({ query: username, limit: 5 });
+                console.log(`[resolveDiscordUsername] guild ${guildId} search "${username}" -> ${matches.size} match(es): ${matches.map(m => `${m.user.username}(nick=${m.nickname})`).join(", ")}`);
                 const exact = matches.find(m =>
                     m.nickname?.toLowerCase() === username.toLowerCase() ||
                     m.user.username.toLowerCase() === username.toLowerCase()
@@ -282,6 +287,8 @@ export default class apiHandler extends ForestBotAPI {
         } catch (err) {
             console.error(err, "resolveDiscordUsername error");
         }
+
+        console.log(`[resolveDiscordUsername] request_id=${request_id} result snowflake=${snowflake}`);
 
         // Cast needed: forestbot-api-wrapper-v2's own typings lock sendMessage's action/data
         // to closed unions that predate this custom action -- can't extend an external package.
