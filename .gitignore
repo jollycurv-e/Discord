@@ -5,3 +5,4 @@ config.json
 CLAUDE.md
 rerun.ps1
 .claudeignore
+dump_role_members.js
