@@ -38,4 +38,29 @@ export default async function buttonHandler(interaction: Interaction, client: Fo
         await interaction.deferUpdate();
         return await interaction.editReply(await makeMosaicEmbed(thisGuild.mc_server.toLowerCase(), customId, lossless));
     }
+
+    // "Mobile Friendly" button on the normal tablist -- switches into the
+    // portrait layout, preserving whichever lossless state was already active.
+    if (customId === "tablist_to_mobile" || customId === "tablist_to_mobile_lossless") {
+        const lossless = customId === "tablist_to_mobile_lossless";
+        const refreshId = lossless ? "tablist_mobile_refresh_lossless" : "tablist_mobile_refresh";
+        await interaction.deferUpdate();
+        return await interaction.editReply(await makeTablistEmbed(thisGuild.mc_server.toLowerCase(), refreshId, lossless, true));
+    }
+
+    // Refresh button on the mobile view itself -- stays in mobile mode.
+    if (customId === "tablist_mobile_refresh" || customId === "tablist_mobile_refresh_lossless") {
+        const lossless = customId === "tablist_mobile_refresh_lossless";
+        await interaction.deferUpdate();
+        return await interaction.editReply(await makeTablistEmbed(thisGuild.mc_server.toLowerCase(), customId, lossless, true));
+    }
+
+    // "Full Size" button on the mobile view -- switches back to the normal
+    // desktop layout, preserving lossless state.
+    if (customId === "tablist_to_full" || customId === "tablist_to_full_lossless") {
+        const lossless = customId === "tablist_to_full_lossless";
+        const refreshId = lossless ? "refresh_lossless" : "refresh";
+        await interaction.deferUpdate();
+        return await interaction.editReply(await makeTablistEmbed(thisGuild.mc_server.toLowerCase(), refreshId, lossless, false));
+    }
 };

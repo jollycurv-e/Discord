@@ -16,6 +16,12 @@ export default {
                 description: "Send as lossless PNG instead of JPEG (larger file, no compression artifacts)",
                 type: 5, // BOOLEAN
                 required: false
+            },
+            {
+                name: "mobile",
+                description: "Send the mobile-friendly portrait layout instead of the normal one",
+                type: 5, // BOOLEAN
+                required: false
             }
         ]
     },
@@ -23,8 +29,11 @@ export default {
 
         await interaction.deferReply();
         const lossless = interaction.options.getBoolean('lossless') ?? false;
-        const customId = lossless ? "refresh_lossless" : "refresh";
-        await interaction.editReply(await makeTablistEmbed(thisGuild.mc_server.toLowerCase(), customId, lossless));
+        const mobile = interaction.options.getBoolean('mobile') ?? false;
+        const customId = mobile
+            ? (lossless ? "tablist_mobile_refresh_lossless" : "tablist_mobile_refresh")
+            : (lossless ? "refresh_lossless" : "refresh");
+        await interaction.editReply(await makeTablistEmbed(thisGuild.mc_server.toLowerCase(), customId, lossless, mobile));
         return;
 
     }
